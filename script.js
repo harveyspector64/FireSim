@@ -1,112 +1,129 @@
-// Set up the scene, camera, and renderer
-let scene = new THREE.Scene();
-scene.fog = new THREE.FogExp2(0x000000, 0.35);
+let firePixels = [];
+const fireWidth = 80;
+const fireHeight = 60;
+let intensity = 50;
 
-let camera = new THREE.PerspectiveCamera(
-    60, window.innerWidth / window.innerHeight, 0.1, 1000
-);
-camera.position.z = 3;
+const canvas = document.getElementById('fireCanvas');
+const ctx = canvas.getContext('2d');
 
-let renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
-renderer.setSize(window.innerWidth, window.innerHeight);
-document.body.appendChild(renderer.domElement);
-
-// Responsive handling
-window.addEventListener('resize', onWindowResize, false);
-function onWindowResize(){
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
+// Resize canvas to fit the container
+function resizeCanvas() {
+    canvas.width = canvas.clientWidth;
+    canvas.height = canvas.clientHeight;
 }
 
-// Create the particle system for the fire
-let particleCount = 5000;
-let particles = new THREE.BufferGeometry();
-let positions = [];
-let velocities = [];
-let colors = [];
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
 
-for (let i = 0; i < particleCount; i++) {
-    // Initial positions
-    positions.push((Math.random() - 0.5) * 0.5); // x
-    positions.push(0);                           // y
-    positions.push((Math.random() - 0.5) * 0.5); // z
-
-    // Velocities
-    velocities.push(0);                          // x
-    velocities.push(Math.random() * 0.02 + 0.01); // y
-    velocities.push(0);                          // z
-
-    // Colors (starting with a fire-like color)
-    colors.push(1, 0.5, 0); // RGB
-}
-
-particles.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-particles.setAttribute('velocity', new THREE.Float32BufferAttribute(velocities, 3));
-particles.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-
-let particleMaterial = new THREE.PointsMaterial({
-    size: 0.2,
-    vertexColors: true,
-    transparent: true,
-    opacity: 0.7,
-    blending: THREE.AdditiveBlending,
-    depthTest: false
-});
-
-let particleSystem = new THREE.Points(particles, particleMaterial);
-scene.add(particleSystem);
-
-// Slider to control fire intensity
-let intensitySlider = document.getElementById('intensitySlider');
-intensitySlider.addEventListener('input', function() {
-    let intensity = parseFloat(intensitySlider.value);
-    let velocities = particles.attributes.velocity.array;
-    for (let i = 0; i < particleCount; i++) {
-        velocities[i * 3 + 1] = (Math.random() * 0.02 + 0.01) * intensity;
+// Initialize fire pixels
+function initializeFire() {
+    for (let i = 0; i < fireWidth * fireHeight; i++) {
+        firePixels[i] = 0;
     }
-    particles.attributes.velocity.needsUpdate = true;
 
-    // Adjust particle size based on intensity
-    particleMaterial.size = 0.2 * intensity + 0.05;
+    // Set the bottom row to max intensity
+    for (let x = 0; x < fireWidth; x++) {
+        firePixels[(fireHeight - 1) * fireWidth + x] = intensity;
+    }
+}
+
+// Update fire intensity based on slider
+const intensitySlider = document.getElementById('intensity');
+intensitySlider.addEventListener('input', (e) => {
+    intensity = Math.floor(e.target.value);
+    initializeFire();
 });
+
+// Calculate fire propagation
+function calculateFirePropagation() {
+    for (let y = 0; y < fireHeight; y++) {
+        for (let x = 0; x < fireWidth; x++) {
+            updateFireIntensity(x, y);
+        }
+    }
+}
+
+// Update the intensity of each pixel
+function updateFireIntensity(x, y) {
+    const src = y * fireWidth + x;
+    if (y === 0) return; // Skip the top row
+
+    const decay = Math.floor(Math.random() * 3);
+    const below = (y - 1) * fireWidth + x;
+    const newIntensity = firePixels[below] - decay;
+    firePixels[src] = newIntensity >= 0 ? newIntensity : 0;
+}
+
+// Render the fire on canvas
+function renderFire() {
+    const imageData = ctx.createImageData(fireWidth, fireHeight);
+    for (let i = 0; i < firePixels.length; i++) {
+        const color = fireColorsPalette[firePixels[i]];
+        imageData.data[i * 4] = color.r;
+        imageData.data[i * 4 + 1] = color.g;
+        imageData.data[i * 4 + 2] = color.b;
+        imageData.data[i * 4 + 3] = 255; // Alpha
+    }
+
+    // Scale the image to fit the canvas
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = fireWidth;
+    tempCanvas.height = fireHeight;
+    const tempCtx = tempCanvas.getContext('2d');
+    tempCtx.putImageData(imageData, 0, 0);
+
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(tempCanvas, 0, 0, canvas.width, canvas.height);
+}
+
+// Fire color palette
+const fireColorsPalette = [
+    { r: 7, g: 7, b: 7 },
+    { r: 31, g: 7, b: 7 },
+    { r: 47, g: 15, b: 7 },
+    { r: 71, g: 15, b: 7 },
+    { r: 87, g: 23, b: 7 },
+    { r: 103, g: 31, b: 7 },
+    { r: 119, g: 31, b: 7 },
+    { r: 143, g: 39, b: 7 },
+    { r: 159, g: 47, b: 7 },
+    { r: 175, g: 63, b: 7 },
+    { r: 191, g: 71, b: 7 },
+    { r: 199, g: 71, b: 7 },
+    { r: 223, g: 79, b: 7 },
+    { r: 223, g: 87, b: 7 },
+    { r: 223, g: 87, b: 7 },
+    { r: 215, g: 95, b: 7 },
+    { r: 215, g: 95, b: 7 },
+    { r: 215, g: 103, b: 15 },
+    { r: 207, g: 111, b: 15 },
+    { r: 207, g: 119, b: 15 },
+    { r: 207, g: 127, b: 15 },
+    { r: 207, g: 135, b: 23 },
+    { r: 199, g: 135, b: 23 },
+    { r: 199, g: 143, b: 23 },
+    { r: 199, g: 151, b: 31 },
+    { r: 191, g: 159, b: 31 },
+    { r: 191, g: 159, b: 31 },
+    { r: 191, g: 167, b: 39 },
+    { r: 191, g: 167, b: 39 },
+    { r: 191, g: 175, b: 47 },
+    { r: 183, g: 175, b: 47 },
+    { r: 183, g: 183, b: 47 },
+    { r: 183, g: 183, b: 55 },
+    { r: 207, g: 207, b: 111 },
+    { r: 223, g: 223, b: 159 },
+    { r: 239, g: 239, b: 199 },
+    { r: 255, g: 255, b: 255 },
+];
 
 // Animation loop
 function animate() {
+    calculateFirePropagation();
+    renderFire();
     requestAnimationFrame(animate);
-
-    let positions = particles.attributes.position.array;
-    let velocities = particles.attributes.velocity.array;
-    let colors = particles.attributes.color.array;
-    let intensity = parseFloat(intensitySlider.value);
-
-    for (let i = 0; i < particleCount; i++) {
-        // Update positions
-        positions[i * 3 + 1] += velocities[i * 3 + 1];
-
-        // Reset particle if it goes too high
-        if (positions[i * 3 + 1] > 2) {
-            positions[i * 3 + 1] = 0;
-            positions[i * 3 + 0] = (Math.random() - 0.5) * 0.5;
-            positions[i * 3 + 2] = (Math.random() - 0.5) * 0.5;
-            velocities[i * 3 + 1] = (Math.random() * 0.02 + 0.01) * intensity;
-
-            // Reset colors
-            colors[i * 3 + 0] = 1;   // R
-            colors[i * 3 + 1] = 0.5; // G
-            colors[i * 3 + 2] = 0;   // B
-        } else {
-            // Change color to simulate cooling (from red to yellow to white)
-            colors[i * 3 + 0] = Math.min(colors[i * 3 + 0] + 0.005, 1);
-            colors[i * 3 + 1] = Math.min(colors[i * 3 + 1] + 0.01, 1);
-            colors[i * 3 + 2] = Math.min(colors[i * 3 + 2] + 0.015, 1);
-        }
-    }
-
-    particles.attributes.position.needsUpdate = true;
-    particles.attributes.color.needsUpdate = true;
-
-    renderer.render(scene, camera);
 }
 
+// Initialize and start animation
+initializeFire();
 animate();
