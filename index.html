@@ -4,13 +4,16 @@
 <head>
   <meta charset="UTF-8">
   <title>Fire Simulator</title>
+  <!-- Prevents zooming on mobile devices -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <div id="controls">
     <label for="intensity">Flame Intensity:</label>
-    <input type="range" id="intensity" min="0" max="36" value="18">
-    <span id="intensityValue">18</span>
+    <input type="range" id="intensity" min="0" max="50" value="25">
+    <span id="intensityValue">25</span>
+    <button id="fullscreenBtn">🔍</button>
   </div>
   <canvas id="fireCanvas"></canvas>
 
