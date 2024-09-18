@@ -17,10 +17,29 @@
         #fireCanvas {
             display: block;
         }
+
+        /* Slider styles */
+        #intensitySlider {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+            max-width: 400px;
+        }
+
+        /* Hide slider on mobile devices */
+        @media (pointer: coarse) {
+            #intensitySlider {
+                display: none;
+            }
+        }
     </style>
 </head>
 <body>
     <canvas id="fireCanvas"></canvas>
+    <!-- Slider for desktop -->
+    <input type="range" id="intensitySlider" min="0" max="100" value="50">
 
     <!-- Include the script at the end of the body -->
     <script src="fireSimulator.js"></script>
