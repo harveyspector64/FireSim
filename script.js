@@ -140,7 +140,7 @@ function renderFire() {
   // Calculate scaling factors to maintain aspect ratio
   const scaleX = canvas.width / fireWidth;
   const scaleY = canvas.height / fireHeight;
-  const scale = Math.min(scaleX, scaleY);
+  const scale = Math.min(scaleX, scaleY) * 1.2; // Increase scale factor for larger flames
 
   // Calculate positioning to center the fire
   const offsetX = (canvas.width - fireWidth * scale) / 2;
