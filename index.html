@@ -1,23 +1,28 @@
-<!-- index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Fire Simulator</title>
-  <!-- Prevents zooming on mobile devices and ensures proper scaling -->
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <link rel="stylesheet" href="styles.css">
+    <meta charset="UTF-8">
+    <title>Interactive Fire Simulator</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        /* Reset margins and paddings */
+        body, html {
+            margin: 0;
+            padding: 0;
+            overflow: hidden; /* Hide scrollbars */
+            background-color: #000;
+        }
+
+        /* Canvas will fill the entire viewport */
+        #fireCanvas {
+            display: block;
+        }
+    </style>
 </head>
 <body>
-  <div id="controls">
-    <label for="intensity">Flame Intensity:</label>
-    <input type="range" id="intensity" min="0" max="100" value="50">
-    <span id="intensityValue">50</span>
-    <button id="fullscreenBtn">🔍</button>
-  </div>
-  <canvas id="fireCanvas"></canvas>
+    <canvas id="fireCanvas"></canvas>
 
-  <!-- Include the script -->
-  <script src="script.js"></script>
+    <!-- Include the script at the end of the body -->
+    <script src="fireSimulator.js"></script>
 </body>
 </html>
