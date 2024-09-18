@@ -76,10 +76,10 @@ function initializeFire() {
   }
 }
 
-// Fire propagation algorithm
 // Define wind parameters
 let wind = 0; // Positive values for right wind, negative for left wind
 
+// Fire propagation algorithm with wind effect
 function propagateFire() {
   for (let y = 0; y < fireHeight - 1; y++) {
     for (let x = 0; x < fireWidth; x++) {
@@ -156,7 +156,7 @@ function renderFire() {
   // Calculate scaling factors to maintain aspect ratio
   const scaleX = canvas.width / fireWidth;
   const scaleY = canvas.height / fireHeight;
-  const scale = Math.min(scaleX, scaleY) * 1.2; // Increase scale factor for larger flames
+  const scale = Math.min(scaleX, scaleY) * 1.2; // Increased scale factor for larger flames
 
   // Calculate positioning to center the fire
   const offsetX = (canvas.width - fireWidth * scale) / 2;
