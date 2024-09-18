@@ -9,7 +9,7 @@ let fireWidth = 300;
 let fireHeight = 200;
 
 // Fire properties
-let fireIntensity = 18; // Initial intensity (0-36)
+let fireIntensity = 25; // Initial intensity (0-50)
 
 // Display current intensity
 const intensitySlider = document.getElementById('intensity');
@@ -19,7 +19,7 @@ intensityValue.textContent = fireIntensity;
 // Create a pixel array initialized to 0
 let firePixels = new Array(fireWidth * fireHeight).fill(0);
 
-// Color palette for fire (0-36)
+// Expanded color palette for fire (0-50)
 const fireColors = [
   { r: 7, g: 7, b: 7 },
   { r: 31, g: 7, b: 7 },
@@ -58,6 +58,17 @@ const fireColors = [
   { r: 223, g: 223, b: 159 },
   { r: 239, g: 239, b: 199 },
   { r: 255, g: 255, b: 255 },
+  // Additional colors for higher intensities
+  { r: 255, g: 200, b: 0 },
+  { r: 255, g: 220, b: 0 },
+  { r: 255, g: 240, b: 0 },
+  { r: 255, g: 255, b: 0 },
+  { r: 255, g: 255, b: 100 },
+  { r: 255, g: 255, b: 150 },
+  { r: 255, g: 255, b: 200 },
+  { r: 255, g: 255, b: 250 },
+  { r: 255, g: 255, b: 255 },
+  { r: 255, g: 255, b: 255 }, // Extend as needed
 ];
 
 // Ensure fireColors array is correctly defined
@@ -86,7 +97,7 @@ function propagateFire() {
       const currentIndex = y * fireWidth + x;
       const belowIndex = (y + 1) * fireWidth + x;
 
-      const decay = Math.floor(Math.random() * 3); // Random decay between 0-2
+      const decay = Math.floor(Math.random() * 4); // Random decay between 0-3
       let newIntensity = firePixels[belowIndex] - decay;
 
       // Apply wind effect
@@ -112,7 +123,7 @@ function propagateFire() {
   }
 
   // Optionally, vary wind over time for dynamic effects
-  wind += (Math.random() - 0.5) * 0.1; // Slight random variation
+  wind += (Math.random() - 0.5) * 0.05; // Slight random variation
   wind = Math.max(Math.min(wind, 1), -1); // Clamp wind between -1 and 1
 }
 
@@ -156,7 +167,7 @@ function renderFire() {
   // Calculate scaling factors to maintain aspect ratio
   const scaleX = canvas.width / fireWidth;
   const scaleY = canvas.height / fireHeight;
-  const scale = Math.min(scaleX, scaleY) * 1.2; // Increased scale factor for larger flames
+  const scale = Math.min(scaleX, scaleY) * 1.5; // Increased scale factor for larger flames
 
   // Calculate positioning to center the fire
   const offsetX = (canvas.width - fireWidth * scale) / 2;
@@ -202,11 +213,72 @@ function addInteraction(x, y) {
   const index = fireY * fireWidth + fireX;
 
   if (index >= 0 && index < firePixels.length) {
-    firePixels[index] = fireIntensity;
+    // Inject heat for realistic interaction
+    injectHeat(fireX, fireY, fireIntensity);
     // Debug: Log interaction
-    console.log(`Interaction at (${fireX}, ${fireY}) - firePixels[${index}] set to ${fireIntensity}`);
+    console.log(`Interaction at (${fireX}, ${fireY}) - injected heat with intensity ${fireIntensity}`);
   }
 }
+
+// Function to inject heat into the fire grid
+function injectHeat(x, y, intensity) {
+  const spread = 5; // Increased spread for more natural heat distribution
+
+  for (let dy = -spread; dy <= spread; dy++) {
+    for (let dx = -spread; dx <= spread; dx++) {
+      const newX = x + dx;
+      const newY = y + dy;
+      if (newX >= 0 && newX < fireWidth && newY >= 0 && newY < fireHeight) {
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        if (distance <= spread) { // Only affect pixels within the spread radius
+          const factor = (spread - distance) / spread; // Heat diminishes with distance
+          const index = newY * fireWidth + newX;
+          // Increase intensity with a higher cap
+          firePixels[index] = Math.min(firePixels[index] + Math.floor(intensity * factor * 2), fireColors.length - 1);
+        }
+      }
+    }
+  }
+
+  // Create a visual ripple effect
+  createRipple(x, y, spread);
+}
+
+// Function to create a ripple effect on the canvas
+function createRipple(x, y, spread) {
+  const rippleCanvas = document.createElement('canvas');
+  rippleCanvas.width = fireWidth;
+  rippleCanvas.height = fireHeight;
+  const rippleCtx = rippleCanvas.getContext('2d');
+
+  // Draw a semi-transparent white circle to simulate a ripple
+  rippleCtx.fillStyle = `rgba(255, 255, 255, 0.3)`;
+  rippleCtx.beginPath();
+  rippleCtx.arc(x, y, spread, 0, Math.PI * 2);
+  rippleCtx.fill();
+
+  // Composite the ripple onto the firePixels array
+  const imageData = rippleCtx.getImageData(0, 0, fireWidth, fireHeight).data;
+  for (let i = 0; i < firePixels.length; i++) {
+    const alpha = imageData[i * 4 + 3];
+    if (alpha > 0) {
+      // Enhance the intensity based on the ripple's alpha
+      firePixels[i] = Math.min(firePixels[i] + Math.floor(alpha / 255 * 5), fireColors.length - 1);
+    }
+  }
+}
+
+// Fullscreen toggle functionality
+const fullscreenBtn = document.getElementById('fullscreenBtn');
+fullscreenBtn.addEventListener('click', () => {
+  if (!document.fullscreenElement) {
+    canvas.requestFullscreen().catch(err => {
+      console.error(`Error attempting to enable fullscreen mode: ${err.message}`);
+    });
+  } else {
+    document.exitFullscreen();
+  }
+});
 
 // Mouse events
 canvas.addEventListener('mousedown', (e) => {
@@ -240,9 +312,13 @@ function resizeCanvas() {
   canvas.height = window.innerHeight;
   console.log(`Canvas resized to ${canvas.width}x${canvas.height}`);
 
-  // Optionally adjust fire grid based on screen size
-  // For simplicity, we'll keep fireWidth and fireHeight constant
-  // Alternatively, you can scale fireWidth and fireHeight based on screen size
+  // Dynamically adjust fire grid size based on canvas dimensions
+  fireWidth = Math.floor(canvas.width / 4); // Adjust the divisor to change grid resolution
+  fireHeight = Math.floor(canvas.height / 4);
+
+  // Reinitialize fire pixels
+  firePixels = new Array(fireWidth * fireHeight).fill(0);
+  initializeFire();
 }
 window.addEventListener('resize', resizeCanvas);
 resizeCanvas();
