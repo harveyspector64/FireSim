@@ -77,6 +77,9 @@ function initializeFire() {
 }
 
 // Fire propagation algorithm
+// Define wind parameters
+let wind = 0; // Positive values for right wind, negative for left wind
+
 function propagateFire() {
   for (let y = 0; y < fireHeight - 1; y++) {
     for (let x = 0; x < fireWidth; x++) {
@@ -84,20 +87,33 @@ function propagateFire() {
       const belowIndex = (y + 1) * fireWidth + x;
 
       const decay = Math.floor(Math.random() * 3); // Random decay between 0-2
-      const newIntensity = firePixels[belowIndex] - decay;
+      let newIntensity = firePixels[belowIndex] - decay;
+
+      // Apply wind effect
+      let windShift = Math.floor(wind);
+      let shiftedIndex = currentIndex + windShift;
+
+      // Ensure shiftedIndex is within bounds
+      if (shiftedIndex < y * fireWidth || shiftedIndex >= (y + 1) * fireWidth) {
+        shiftedIndex = currentIndex;
+      }
 
       // Ensure the new intensity is within bounds
       const clampedIntensity = newIntensity > 0 ? newIntensity : 0;
 
-      // Update the current pixel with the new intensity
-      firePixels[currentIndex] = clampedIntensity;
+      // Update the shifted pixel with the new intensity
+      firePixels[shiftedIndex] = clampedIntensity;
 
       // Debug: Log some updates
       if (y === 0 && (x === 0 || x === fireWidth - 1)) {
-        console.log(`firePixels[${currentIndex}] updated to ${firePixels[currentIndex]}`);
+        console.log(`firePixels[${shiftedIndex}] updated to ${firePixels[shiftedIndex]}`);
       }
     }
   }
+
+  // Optionally, vary wind over time for dynamic effects
+  wind += (Math.random() - 0.5) * 0.1; // Slight random variation
+  wind = Math.max(Math.min(wind, 1), -1); // Clamp wind between -1 and 1
 }
 
 // Render the fire to the canvas
