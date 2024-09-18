@@ -4,18 +4,11 @@
 const canvas = document.getElementById('fireCanvas');
 const ctx = canvas.getContext('2d');
 
-// Resize canvas to fit the window
-function resizeCanvas() {
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-  console.log(`Canvas resized to ${canvas.width}x${canvas.height}`);
-}
-window.addEventListener('resize', resizeCanvas);
-resizeCanvas();
+// Variables for fire grid dimensions
+let fireWidth = 300;
+let fireHeight = 200;
 
 // Fire properties
-const fireWidth = 300;  // Number of pixels horizontally
-const fireHeight = 200; // Number of pixels vertically
 let fireIntensity = 18; // Initial intensity (0-36)
 
 // Display current intensity
@@ -149,6 +142,10 @@ function renderFire() {
   const scaleY = canvas.height / fireHeight;
   const scale = Math.min(scaleX, scaleY);
 
+  // Calculate positioning to center the fire
+  const offsetX = (canvas.width - fireWidth * scale) / 2;
+  const offsetY = (canvas.height - fireHeight * scale) / 2;
+
   // Draw the temporary canvas onto the main canvas with scaling
   ctx.drawImage(
     tempCanvas,
@@ -156,8 +153,8 @@ function renderFire() {
     0,
     fireWidth,
     fireHeight,
-    0,
-    0,
+    offsetX,
+    offsetY,
     fireWidth * scale,
     fireHeight * scale
   );
@@ -181,8 +178,8 @@ intensitySlider.addEventListener('input', (e) => {
 // Handle interactions (mouse and touch)
 function addInteraction(x, y) {
   const canvasRect = canvas.getBoundingClientRect();
-  const scaleX = fireWidth / (canvasRect.width);
-  const scaleY = fireHeight / (canvasRect.height);
+  const scaleX = fireWidth / canvasRect.width;
+  const scaleY = fireHeight / canvasRect.height;
 
   const fireX = Math.floor((x - canvasRect.left) * scaleX);
   const fireY = Math.floor((y - canvasRect.top) * scaleY);
@@ -210,14 +207,29 @@ function onMouseMove(e) {
 // Touch events for mobile
 canvas.addEventListener('touchstart', (e) => {
   e.preventDefault();
-  const touch = e.touches[0];
-  addInteraction(touch.clientX, touch.clientY);
+  Array.from(e.touches).forEach(touch => {
+    addInteraction(touch.clientX, touch.clientY);
+  });
 });
 canvas.addEventListener('touchmove', (e) => {
   e.preventDefault();
-  const touch = e.touches[0];
-  addInteraction(touch.clientX, touch.clientY);
+  Array.from(e.touches).forEach(touch => {
+    addInteraction(touch.clientX, touch.clientY);
+  });
 });
+
+// Resize canvas and adjust fire grid
+function resizeCanvas() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  console.log(`Canvas resized to ${canvas.width}x${canvas.height}`);
+
+  // Optionally adjust fire grid based on screen size
+  // For simplicity, we'll keep fireWidth and fireHeight constant
+  // Alternatively, you can scale fireWidth and fireHeight based on screen size
+}
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
 
 // Initialize and start animation
 initializeFire();
