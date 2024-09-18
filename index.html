@@ -9,11 +9,13 @@
 <body>
   <div id="controls">
     <label for="intensity">Flame Intensity:</label>
-    <input type="range" id="intensity" min="0" max="100" value="50">
+    <!-- Updated max value to match fireColors length -->
+    <input type="range" id="intensity" min="0" max="36" value="18">
+    <span id="intensityValue">18</span>
   </div>
   <canvas id="fireCanvas"></canvas>
 
-  <!-- Include any necessary libraries here -->
+  <!-- Include the script -->
   <script src="script.js"></script>
 </body>
 </html>
