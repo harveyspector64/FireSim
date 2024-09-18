@@ -9,7 +9,7 @@ let fireWidth = 300;
 let fireHeight = 200;
 
 // Fire properties
-let fireIntensity = 25; // Initial intensity (0-50)
+let fireIntensity = 50; // Initial intensity (0-100)
 
 // Display current intensity
 const intensitySlider = document.getElementById('intensity');
@@ -19,8 +19,9 @@ intensityValue.textContent = fireIntensity;
 // Create a pixel array initialized to 0
 let firePixels = new Array(fireWidth * fireHeight).fill(0);
 
-// Expanded color palette for fire (0-50)
+// Expanded color palette for fire (0-100)
 const fireColors = [
+  // Existing colors (0-50)
   { r: 7, g: 7, b: 7 },
   { r: 31, g: 7, b: 7 },
   { r: 47, g: 15, b: 7 },
@@ -58,7 +59,7 @@ const fireColors = [
   { r: 223, g: 223, b: 159 },
   { r: 239, g: 239, b: 199 },
   { r: 255, g: 255, b: 255 },
-  // Additional colors for higher intensities
+  // Additional colors (51-100)
   { r: 255, g: 200, b: 0 },
   { r: 255, g: 220, b: 0 },
   { r: 255, g: 240, b: 0 },
@@ -68,7 +69,19 @@ const fireColors = [
   { r: 255, g: 255, b: 200 },
   { r: 255, g: 255, b: 250 },
   { r: 255, g: 255, b: 255 },
-  { r: 255, g: 255, b: 255 }, // Extend as needed
+  // Repeat white for higher intensities
+  { r: 255, g: 255, b: 255 },
+  { r: 255, g: 255, b: 255 },
+  { r: 255, g: 255, b: 255 },
+  { r: 255, g: 255, b: 255 },
+  { r: 255, g: 255, b: 255 },
+  { r: 255, g: 255, b: 255 },
+  { r: 255, g: 255, b: 255 },
+  { r: 255, g: 255, b: 255 },
+  { r: 255, g: 255, b: 255 },
+  { r: 255, g: 255, b: 255 },
+  { r: 255, g: 255, b: 255 },
+  // Add more if needed
 ];
 
 // Ensure fireColors array is correctly defined
@@ -167,11 +180,11 @@ function renderFire() {
   // Calculate scaling factors to maintain aspect ratio
   const scaleX = canvas.width / fireWidth;
   const scaleY = canvas.height / fireHeight;
-  const scale = Math.min(scaleX, scaleY) * 1.5; // Increased scale factor for larger flames
+  const scale = Math.min(scaleX, scaleY) * 1.5; // Adjusted for better flame size
 
   // Calculate positioning to center the fire
   const offsetX = (canvas.width - fireWidth * scale) / 2;
-  const offsetY = (canvas.height - fireHeight * scale) / 2;
+  const offsetY = canvas.height - (fireHeight * scale); // Position flames to emanate from bottom
 
   // Draw the temporary canvas onto the main canvas with scaling
   ctx.drawImage(
@@ -200,24 +213,6 @@ intensitySlider.addEventListener('input', (e) => {
   intensityValue.textContent = fireIntensity;
   console.log(`Intensity changed to ${fireIntensity}`);
   initializeFire();
-});
-
-// Handle interactions (mouse and touch)
-function addInteraction(x, y) {
-  const canvasRect = canvas.getBoundingClientRect();
-  const scaleX = fireWidth / canvasRect.width;
-  const scaleY = fireHeight / canvasRect.height;
-
-  const fireX = Math.floor((x - canvasRect.left) * scaleX);
-  const fireY = Math.floor((y - canvasRect.top) * scaleY);
-  const index = fireY * fireWidth + fireX;
-
-  if (index >= 0 && index < firePixels.length) {
-    // Inject heat for realistic interaction
-    injectHeat(fireX, fireY, fireIntensity);
-    // Debug: Log interaction
-    console.log(`Interaction at (${fireX}, ${fireY}) - injected heat with intensity ${fireIntensity}`);
-  }
 }
 
 // Function to inject heat into the fire grid
@@ -268,17 +263,23 @@ function createRipple(x, y, spread) {
   }
 }
 
-// Fullscreen toggle functionality
-const fullscreenBtn = document.getElementById('fullscreenBtn');
-fullscreenBtn.addEventListener('click', () => {
-  if (!document.fullscreenElement) {
-    canvas.requestFullscreen().catch(err => {
-      console.error(`Error attempting to enable fullscreen mode: ${err.message}`);
-    });
-  } else {
-    document.exitFullscreen();
+// Handle interactions (mouse and touch)
+function addInteraction(x, y) {
+  const canvasRect = canvas.getBoundingClientRect();
+  const scaleX = fireWidth / canvasRect.width;
+  const scaleY = fireHeight / canvasRect.height;
+
+  const fireX = Math.floor((x - canvasRect.left) * scaleX);
+  const fireY = Math.floor((y - canvasRect.top) * scaleY);
+  const index = fireY * fireWidth + fireX;
+
+  if (index >= 0 && index < firePixels.length) {
+    // Inject heat for realistic interaction
+    injectHeat(fireX, fireY, fireIntensity);
+    // Debug: Log interaction
+    console.log(`Interaction at (${fireX}, ${fireY}) - injected heat with intensity ${fireIntensity}`);
   }
-});
+}
 
 // Mouse events
 canvas.addEventListener('mousedown', (e) => {
@@ -304,6 +305,18 @@ canvas.addEventListener('touchmove', (e) => {
   Array.from(e.touches).forEach(touch => {
     addInteraction(touch.clientX, touch.clientY);
   });
+});
+
+// Fullscreen toggle functionality
+const fullscreenBtn = document.getElementById('fullscreenBtn');
+fullscreenBtn.addEventListener('click', () => {
+  if (!document.fullscreenElement) {
+    canvas.requestFullscreen().catch(err => {
+      console.error(`Error attempting to enable fullscreen mode: ${err.message}`);
+    });
+  } else {
+    document.exitFullscreen();
+  }
 });
 
 // Resize canvas and adjust fire grid
