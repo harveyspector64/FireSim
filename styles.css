@@ -4,20 +4,37 @@ body, html {
   padding: 0;
   overflow: hidden;
   background-color: #000;
+  height: 100%;
+  width: 100%;
 }
 
 #controls {
   position: absolute;
   top: 10px;
-  left: 10px;
+  left: 50%;
+  transform: translateX(-50%);
   color: #fff;
   z-index: 10;
   font-family: Arial, sans-serif;
   background: rgba(0, 0, 0, 0.5);
-  padding: 10px;
-  border-radius: 5px;
+  padding: 10px 20px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+}
+
+#controls label {
+  margin-right: 10px;
+}
+
+#intensityValue {
+  margin-left: 10px;
+  min-width: 30px;
+  text-align: center;
 }
 
 #fireCanvas {
   display: block;
+  width: 100%;
+  height: 100%;
 }
