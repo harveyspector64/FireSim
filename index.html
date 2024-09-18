@@ -2,32 +2,20 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Fire Simulator</title>
-    <style>
-        body { margin: 0; overflow: hidden; }
-        #sliderContainer {
-            position: absolute;
-            bottom: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 10;
-            background: rgba(255, 255, 255, 0.5);
-            padding: 5px;
-            border-radius: 5px;
-        }
-        #intensitySlider {
-            width: 80vw;
-        }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Realistic Fire Simulator</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div id="sliderContainer">
-        <label for="intensitySlider">Fire Intensity:</label>
-        <input type="range" id="intensitySlider" min="0" max="1" step="0.01" value="0.5">
+    <div class="container">
+        <canvas id="fireCanvas"></canvas>
+        <div class="controls">
+            <label for="intensity">Fire Intensity:</label>
+            <input type="range" id="intensity" name="intensity" min="0" max="100" value="50">
+        </div>
     </div>
-    <!-- Include Three.js library -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <!-- Your JavaScript code will go here -->
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.2/p5.min.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
