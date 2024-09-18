@@ -15,38 +15,56 @@ window.addEventListener('resize', resizeCanvas);
 // Particle array
 let particles = [];
 
-// Mouse/touch interaction coordinates
-let interactX = canvas.width / 2;
-let interactY = canvas.height;
+// Fire intensity (0 to 100)
+let fireIntensity = 50;
 
-// Detecting user interaction
-let isInteracting = false;
+// Slider element
+const intensitySlider = document.getElementById('intensitySlider');
+
+// Update fireIntensity when slider changes
+intensitySlider.addEventListener('input', function() {
+    fireIntensity = parseInt(this.value);
+});
+
+// For mobile, track touch position to adjust intensity
+let isTouching = false;
+let startY = 0;
+let currentY = 0;
+
+canvas.addEventListener('touchstart', function(event) {
+    isTouching = true;
+    startY = event.touches[0].clientY;
+});
+
+canvas.addEventListener('touchmove', function(event) {
+    if (isTouching) {
+        currentY = event.touches[0].clientY;
+        // Calculate the difference
+        const deltaY = startY - currentY;
+        // Adjust fireIntensity based on deltaY
+        fireIntensity += deltaY * 0.1; // Adjust sensitivity as needed
+        fireIntensity = Math.max(0, Math.min(100, fireIntensity));
+        startY = currentY; // Reset startY for the next move
+    }
+});
+
+canvas.addEventListener('touchend', function() {
+    isTouching = false;
+});
 
 // Particle constructor
 function Particle(x, y) {
     this.x = x;
     this.y = y;
+    const intensityFactor = fireIntensity / 100;
     this.speedX = (Math.random() - 0.5) * 1;
-    this.speedY = -Math.random() * 3 - 1;
-    this.size = Math.random() * 5 + 2;
+    this.speedY = -Math.random() * (2 + 3 * intensityFactor) - 1;
+    this.size = Math.random() * (3 + 5 * intensityFactor) + 2;
     this.life = Math.random() * 30 + 30;
 }
 
 // Update particle position and properties
 Particle.prototype.update = function() {
-    // Apply interaction force
-    if (isInteracting) {
-        const dx = this.x - interactX;
-        const dy = this.y - interactY;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist < 100) {
-            const angle = Math.atan2(dy, dx);
-            const force = (100 - dist) / 100;
-            this.speedX += Math.cos(angle) * force;
-            this.speedY += Math.sin(angle) * force;
-        }
-    }
-
     // Update position
     this.x += this.speedX;
     this.y += this.speedY;
@@ -79,9 +97,10 @@ Particle.prototype.draw = function() {
 
 // Create particles at the bottom of the screen
 function createParticles() {
-    for (let i = 0; i < 5; i++) {
-        const x = interactX + (Math.random() - 0.5) * 50;
-        const y = canvas.height + 10;
+    const numParticles = Math.floor(fireIntensity / 2); // Adjust number of particles based on intensity
+    for (let i = 0; i < numParticles; i++) {
+        const x = Math.random() * canvas.width;
+        const y = canvas.height - 10;
         particles.push(new Particle(x, y));
     }
 }
@@ -108,33 +127,12 @@ function animate() {
     });
 
     // Create new particles
-    createParticles();
+    if (fireIntensity > 0) {
+        createParticles();
+    }
 
     requestAnimationFrame(animate);
 }
-
-// Handle mouse movement
-canvas.addEventListener('mousemove', function(event) {
-    interactX = event.clientX;
-    interactY = event.clientY;
-    isInteracting = true;
-});
-
-// Handle touch movement
-canvas.addEventListener('touchmove', function(event) {
-    const touch = event.touches[0];
-    interactX = touch.clientX;
-    interactY = touch.clientY;
-    isInteracting = true;
-});
-
-// Reset interaction when not moving
-canvas.addEventListener('mouseleave', function() {
-    isInteracting = false;
-});
-canvas.addEventListener('touchend', function() {
-    isInteracting = false;
-});
 
 // Start animation
 animate();
