@@ -1,51 +1,28 @@
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-}
-
+/* styles.css */
 body, html {
-    height: 100%;
-    width: 100%;
-    font-family: Arial, sans-serif;
-    background-color: #000;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.container {
-    position: relative;
-    width: 90%;
-    max-width: 600px;
-    aspect-ratio: 16 / 9;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  height: 100%;
 }
 
 #fireCanvas {
-    width: 100%;
-    height: 100%;
-    display: block;
-    border-radius: 10px;
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
-.controls {
-    position: absolute;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(255, 255, 255, 0.1);
-    padding: 10px 20px;
-    border-radius: 20px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
+#ui {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
-.controls label {
-    color: #fff;
-    font-size: 14px;
-}
-
-.controls input[type=range] {
-    width: 150px;
+#flameControl {
+  width: 100%;
 }
