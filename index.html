@@ -57,6 +57,9 @@
       const canvas = document.getElementById('fireCanvas');
       const ctx = canvas.getContext('2d');
 
+      // Disable image smoothing to prevent black horizontal bars
+      ctx.imageSmoothingEnabled = false;
+
       // Fire parameters
       let fireHeight = 50; // Initial flame height percentage
       const flameControl = document.getElementById('flameControl');
@@ -64,8 +67,9 @@
 
       // Update flame height display and reinitialize fire on slider input
       flameControl.addEventListener('input', (e) => {
-        fireHeight = parseInt(e.target.value);
-        flameValue.textContent = fireHeight;
+        // Invert the slider value to correct flame height behavior
+        fireHeight = 110 - parseInt(e.target.value);
+        flameValue.textContent = parseInt(e.target.value);
         initializeFire();
       });
 
@@ -123,7 +127,7 @@
       window.addEventListener('resize', resizeCanvas);
       resizeCanvas();
 
-      // Initialize the firePixelsArray based on current flameHeight
+      // Initialize the firePixelsArray based on current fireHeight
       function initializeFire() {
         firePixelsArray = [];
         const width = canvas.width;
@@ -191,19 +195,22 @@
           }
         }
 
-        // Put the imageData on the canvas
-        ctx.putImageData(imageData, 0, 0);
-
-        // Scale the image to fit the canvas
         // Create a temporary canvas to handle scaling
         const tempCanvas = document.createElement('canvas');
         tempCanvas.width = width;
         tempCanvas.height = height;
         const tempCtx = tempCanvas.getContext('2d');
+
+        // Disable image smoothing on the temporary canvas
+        tempCtx.imageSmoothingEnabled = false;
+
         tempCtx.putImageData(imageData, 0, 0);
 
-        // Clear the main canvas and draw the scaled image
+        // Clear the main canvas and disable image smoothing
         ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.imageSmoothingEnabled = false;
+
+        // Draw the scaled image onto the main canvas
         ctx.drawImage(tempCanvas, 0, 0, width, height, 0, 0, canvas.width, canvas.height);
       }
 
@@ -247,7 +254,7 @@
       canvas.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
 
       // Initialize the flame height display
-      flameValue.textContent = fireHeight;
+      flameValue.textContent = parseInt(flameControl.value);
     })();
   </script>
 </body>
