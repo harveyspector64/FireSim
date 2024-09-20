@@ -216,7 +216,6 @@
 
       // Animation loop to continuously update and render the fire
       function animate() {
-        setFireHeight(fireHeight); // Update the flame source
         calculateFirePropagation();
         renderFire();
         requestAnimationFrame(animate);
@@ -257,6 +256,9 @@
 
       // Initialize the flame height display
       flameValue.textContent = parseInt(flameControl.value);
+
+      // Start the animation loop
+      animate();
     })();
   </script>
 </body>
