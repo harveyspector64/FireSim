@@ -1,21 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Realistic Fire Simulator</title>
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8">
+  <title>Fire Simulator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="container">
-        <canvas id="fireCanvas"></canvas>
-        <div class="controls">
-            <label for="intensity">Fire Intensity:</label>
-            <input type="range" id="intensity" name="intensity" min="0" max="100" value="50">
-        </div>
-    </div>
-    
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.2/p5.min.js"></script>
-    <script src="script.js"></script>
+  <div id="ui">
+    <input type="range" id="flameControl" min="0" max="100" value="50">
+  </div>
+  <canvas id="fireCanvas"></canvas>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
