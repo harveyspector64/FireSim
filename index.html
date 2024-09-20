@@ -65,15 +65,9 @@
       const flameControl = document.getElementById('flameControl');
       const flameValue = document.getElementById('flameValue');
 
-      // Update flame height display and reinitialize fire on slider input
-      flameControl.addEventListener('input', (e) => {
-        // Invert the slider value to correct flame height behavior
-        fireHeight = 110 - parseInt(e.target.value);
-        flameValue.textContent = parseInt(e.target.value);
-        initializeFire();
-      });
-
       // Fire algorithm variables
+      const FIRE_WIDTH = 100; // Fixed width for firePixelsArray
+      const FIRE_HEIGHT_PIXELS = 100; // Fixed height for firePixelsArray
       let firePixelsArray = [];
 
       // Color palette for fire (from black to white)
@@ -117,53 +111,59 @@
         { r: 255, g: 255, b: 255 },
       ];
 
-      // Resize canvas to fit the window and initialize fire
-      function resizeCanvas() {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-        initializeFire();
-      }
-
-      window.addEventListener('resize', resizeCanvas);
-      resizeCanvas();
-
-      // Initialize the firePixelsArray based on current fireHeight
-      function initializeFire() {
+      // Initialize the firePixelsArray once
+      function initializeFirePixels() {
         firePixelsArray = [];
-        const width = canvas.width;
-        const height = Math.floor((fireHeight / 100) * canvas.height);
-
-        for (let y = 0; y < height; y++) {
+        for (let y = 0; y < FIRE_HEIGHT_PIXELS; y++) {
           const row = [];
-          for (let x = 0; x < width; x++) {
+          for (let x = 0; x < FIRE_WIDTH; x++) {
             row.push(0); // Initialize with zero intensity
           }
           firePixelsArray.push(row);
         }
 
-        // Initialize the bottom row with maximum intensity to act as the flame source
-        for (let x = 0; x < width; x++) {
-          firePixelsArray[height - 1][x] = 36; // Max intensity for flames
+        // Set the bottom 'fireHeight' rows to maximum intensity
+        setFireHeight(fireHeight);
+      }
+
+      // Set the bottom 'fireHeight' rows to maximum intensity, reset others
+      function setFireHeight(heightPercentage) {
+        const activeRows = Math.floor((heightPercentage / 100) * FIRE_HEIGHT_PIXELS);
+        for (let y = 0; y < FIRE_HEIGHT_PIXELS; y++) {
+          if (y >= FIRE_HEIGHT_PIXELS - activeRows) {
+            for (let x = 0; x < FIRE_WIDTH; x++) {
+              firePixelsArray[y][x] = 36; // Max intensity for flames
+            }
+          } else {
+            for (let x = 0; x < FIRE_WIDTH; x++) {
+              firePixelsArray[y][x] = 0; // Reset intensity
+            }
+          }
         }
       }
 
+      // Update 'fireHeight' based on slider
+      flameControl.addEventListener('input', (e) => {
+        const sliderValue = parseInt(e.target.value);
+        flameValue.textContent = sliderValue;
+        fireHeight = sliderValue;
+        setFireHeight(fireHeight);
+      });
+
       // Calculate fire propagation using the classic fire algorithm
       function calculateFirePropagation() {
-        const width = canvas.width;
-        const height = Math.floor((fireHeight / 100) * canvas.height);
-
-        for (let y = 1; y < height; y++) {
-          for (let x = 0; x < width; x++) {
+        for (let y = 1; y < FIRE_HEIGHT_PIXELS; y++) {
+          for (let x = 0; x < FIRE_WIDTH; x++) {
             const decay = Math.floor(Math.random() * 3);
             let belowY = y + 1;
             let belowX = x + (Math.floor(Math.random() * 3) - 1);
 
             // Ensure belowX is within bounds
             if (belowX < 0) belowX = 0;
-            if (belowX >= width) belowX = width -1;
+            if (belowX >= FIRE_WIDTH) belowX = FIRE_WIDTH -1;
 
             // Safety check to prevent accessing out-of-bounds
-            if (belowY >= firePixelsArray.length || belowX >= firePixelsArray[0].length) {
+            if (belowY >= FIRE_HEIGHT_PIXELS || belowX >= FIRE_WIDTH) {
               continue;
             }
 
@@ -176,8 +176,8 @@
 
       // Render the fire onto the canvas
       function renderFire() {
-        const width = canvas.width;
-        const height = Math.floor((fireHeight / 100) * canvas.height);
+        const width = FIRE_WIDTH;
+        const height = FIRE_HEIGHT_PIXELS;
         const imageData = ctx.createImageData(width, height);
         const data = imageData.data;
 
@@ -216,23 +216,22 @@
 
       // Animation loop to continuously update and render the fire
       function animate() {
+        setFireHeight(fireHeight); // Update the flame source
         calculateFirePropagation();
         renderFire();
         requestAnimationFrame(animate);
       }
 
-      animate();
-
       // Handle user interactions (touch/mouse) to create interactive flames
       function handleInteraction(event) {
         const rect = canvas.getBoundingClientRect();
-        const scaleX = canvas.width / rect.width;
-        const scaleY = Math.floor((fireHeight / 100) * canvas.height) / rect.height;
+        const scaleX = FIRE_WIDTH / rect.width;
+        const scaleY = FIRE_HEIGHT_PIXELS / rect.height;
 
         const x = Math.floor((event.clientX - rect.left) * scaleX);
         const y = Math.floor((event.clientY - rect.top) * scaleY);
 
-        if (y >= 0 && y < firePixelsArray.length && x >= 0 && x < firePixelsArray[0].length) {
+        if (y >= 0 && y < FIRE_HEIGHT_PIXELS && x >= 0 && x < FIRE_WIDTH) {
           firePixelsArray[y][x] = 36; // Set maximum intensity at the interacted point
         }
       }
@@ -252,6 +251,9 @@
       // Prevent default touch behaviors to avoid scrolling when interacting with the canvas
       canvas.addEventListener('touchstart', (e) => e.preventDefault(), { passive: false });
       canvas.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
+
+      // Initialize the firePixelsArray
+      initializeFirePixels();
 
       // Initialize the flame height display
       flameValue.textContent = parseInt(flameControl.value);
