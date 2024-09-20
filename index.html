@@ -52,178 +52,203 @@
 
   <script>
     // app.js
-    const canvas = document.getElementById('fireCanvas');
-    const ctx = canvas.getContext('2d');
+    (function(){
+      // Get canvas and context
+      const canvas = document.getElementById('fireCanvas');
+      const ctx = canvas.getContext('2d');
 
-    // Resize canvas to fit the window
-    function resizeCanvas() {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-      initializeFire();
-    }
+      // Fire parameters
+      let fireHeight = 50; // Initial flame height percentage
+      const flameControl = document.getElementById('flameControl');
+      const flameValue = document.getElementById('flameValue');
 
-    window.addEventListener('resize', resizeCanvas);
-    resizeCanvas();
+      // Update flame height display and reinitialize fire on slider input
+      flameControl.addEventListener('input', (e) => {
+        fireHeight = parseInt(e.target.value);
+        flameValue.textContent = fireHeight;
+        initializeFire();
+      });
 
-    // Fire parameters
-    let fireHeight = 50; // Initial flame height
-    const flameControl = document.getElementById('flameControl');
-    const flameValue = document.getElementById('flameValue');
+      // Fire algorithm variables
+      let firePixelsArray = [];
 
-    flameControl.addEventListener('input', (e) => {
-      fireHeight = parseInt(e.target.value);
-      flameValue.textContent = fireHeight;
-      initializeFire();
-    });
+      // Color palette for fire (from black to white)
+      const fireColorsPalette = [
+        { r: 7, g: 7, b: 7 },
+        { r: 31, g: 7, b: 7 },
+        { r: 47, g: 15, b: 7 },
+        { r: 71, g: 15, b: 7 },
+        { r: 87, g: 23, b: 7 },
+        { r: 103, g: 31, b: 7 },
+        { r: 119, g: 31, b: 7 },
+        { r: 143, g: 39, b: 7 },
+        { r: 159, g: 47, b: 7 },
+        { r: 175, g: 63, b: 7 },
+        { r: 191, g: 71, b: 7 },
+        { r: 199, g: 71, b: 7 },
+        { r: 223, g: 79, b: 7 },
+        { r: 223, g: 87, b: 7 },
+        { r: 223, g: 87, b: 7 },
+        { r: 215, g: 95, b: 7 },
+        { r: 215, g: 95, b: 7 },
+        { r: 215, g: 103, b: 15 },
+        { r: 207, g: 111, b: 15 },
+        { r: 207, g: 119, b: 15 },
+        { r: 207, g: 127, b: 15 },
+        { r: 207, g: 135, b: 23 },
+        { r: 199, g: 135, b: 23 },
+        { r: 199, g: 143, b: 23 },
+        { r: 199, g: 151, b: 31 },
+        { r: 191, g: 159, b: 31 },
+        { r: 191, g: 159, b: 31 },
+        { r: 191, g: 167, b: 39 },
+        { r: 191, g: 167, b: 39 },
+        { r: 191, g: 175, b: 47 },
+        { r: 183, g: 175, b: 47 },
+        { r: 183, g: 183, b: 47 },
+        { r: 183, g: 183, b: 55 },
+        { r: 207, g: 207, b: 111 },
+        { r: 223, g: 223, b: 159 },
+        { r: 239, g: 239, b: 199 },
+        { r: 255, g: 255, b: 255 },
+      ];
 
-    // Fire algorithm variables
-    let firePixelsArray = [];
-    const fireWidth = canvas.width;
-    const fireHeightPixels = canvas.height;
+      // Resize canvas to fit the window and initialize fire
+      function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        initializeFire();
+      }
 
-    // Initialize fire
-    function initializeFire() {
-      firePixelsArray = [];
-      const width = canvas.width;
-      const height = Math.floor((fireHeight / 100) * canvas.height);
+      window.addEventListener('resize', resizeCanvas);
+      resizeCanvas();
 
-      for (let y = 0; y < height; y++) {
-        const row = [];
-        for (let x = 0; x < width; x++) {
-          row.push(0);
+      // Initialize the firePixelsArray based on current flameHeight
+      function initializeFire() {
+        firePixelsArray = [];
+        const width = canvas.width;
+        const height = Math.floor((fireHeight / 100) * canvas.height);
+
+        for (let y = 0; y < height; y++) {
+          const row = [];
+          for (let x = 0; x < width; x++) {
+            row.push(0); // Initialize with zero intensity
+          }
+          firePixelsArray.push(row);
         }
-        firePixelsArray.push(row);
-      }
 
-      // Initialize the bottom row with maximum intensity
-      for (let x = 0; x < width; x++) {
-        firePixelsArray[height - 1][x] = 36; // Max intensity for flames
-      }
-    }
-
-    initializeFire();
-
-    // Color palette for fire (from black to yellow)
-    const fireColorsPalette = [
-      { r: 7, g: 7, b: 7 },
-      { r: 31, g: 7, b: 7 },
-      { r: 47, g: 15, b: 7 },
-      { r: 71, g: 15, b: 7 },
-      { r: 87, g: 23, b: 7 },
-      { r: 103, g: 31, b: 7 },
-      { r: 119, g: 31, b: 7 },
-      { r: 143, g: 39, b: 7 },
-      { r: 159, g: 47, b: 7 },
-      { r: 175, g: 63, b: 7 },
-      { r: 191, g: 71, b: 7 },
-      { r: 199, g: 71, b: 7 },
-      { r: 223, g: 79, b: 7 },
-      { r: 223, g: 87, b: 7 },
-      { r: 223, g: 87, b: 7 },
-      { r: 215, g: 95, b: 7 },
-      { r: 215, g: 95, b: 7 },
-      { r: 215, g: 103, b: 15 },
-      { r: 207, g: 111, b: 15 },
-      { r: 207, g: 119, b: 15 },
-      { r: 207, g: 127, b: 15 },
-      { r: 207, g: 135, b: 23 },
-      { r: 199, g: 135, b: 23 },
-      { r: 199, g: 143, b: 23 },
-      { r: 199, g: 151, b: 31 },
-      { r: 191, g: 159, b: 31 },
-      { r: 191, g: 159, b: 31 },
-      { r: 191, g: 167, b: 39 },
-      { r: 191, g: 167, b: 39 },
-      { r: 191, g: 175, b: 47 },
-      { r: 183, g: 175, b: 47 },
-      { r: 183, g: 183, b: 47 },
-      { r: 183, g: 183, b: 55 },
-      { r: 207, g: 207, b: 111 },
-      { r: 223, g: 223, b: 159 },
-      { r: 239, g: 239, b: 199 },
-      { r: 255, g: 255, b: 255 },
-    ];
-
-    // Calculate fire propagation
-    function calculateFirePropagation() {
-      const width = canvas.width;
-      const height = Math.floor((fireHeight / 100) * canvas.height);
-
-      for (let y = 1; y < height; y++) {
+        // Initialize the bottom row with maximum intensity to act as the flame source
         for (let x = 0; x < width; x++) {
-          const decay = Math.floor(Math.random() * 3);
-          const belowY = y + 1;
-          const belowX = x + (Math.floor(Math.random() * 3) - 1);
-          const srcY = belowY;
-          const srcX = (belowX >= 0 && belowX < width) ? belowX : x;
-
-          const srcPixel = firePixelsArray[srcY][srcX];
-          const newIntensity = srcPixel - decay >= 0 ? srcPixel - decay : 0;
-          firePixelsArray[y - 1][x] = newIntensity;
-        }
-      }
-    }
-
-    // Render the fire
-    function renderFire() {
-      const width = canvas.width;
-      const height = Math.floor((fireHeight / 100) * canvas.height);
-      const imageData = ctx.createImageData(width, height);
-      const data = imageData.data;
-
-      for (let y = 0; y < height; y++) {
-        for (let x = 0; x < width; x++) {
-          const pixelIndex = y * width + x;
-          const intensity = firePixelsArray[y][x];
-          const color = fireColorsPalette[intensity];
-
-          const dataIndex = pixelIndex * 4;
-          data[dataIndex] = color.r;
-          data[dataIndex + 1] = color.g;
-          data[dataIndex + 2] = color.b;
-          data[dataIndex + 3] = 255; // Fully opaque
+          firePixelsArray[height - 1][x] = 36; // Max intensity for flames
         }
       }
 
-      // Scale the image to fit the canvas
-      ctx.putImageData(imageData, 0, 0);
-      ctx.drawImage(canvas, 0, 0, width, height, 0, 0, canvas.width, canvas.height);
-    }
+      // Calculate fire propagation using the classic fire algorithm
+      function calculateFirePropagation() {
+        const width = canvas.width;
+        const height = Math.floor((fireHeight / 100) * canvas.height);
 
-    // Animation loop
-    function animate() {
-      calculateFirePropagation();
-      renderFire();
-      requestAnimationFrame(animate);
-    }
+        for (let y = 1; y < height; y++) {
+          for (let x = 0; x < width; x++) {
+            const decay = Math.floor(Math.random() * 3);
+            let belowY = y + 1;
+            let belowX = x + (Math.floor(Math.random() * 3) - 1);
 
-    animate();
+            // Ensure belowX is within bounds
+            if (belowX < 0) belowX = 0;
+            if (belowX >= width) belowX = width -1;
 
-    // Handle user interactions
-    function handleInteraction(event) {
-      const rect = canvas.getBoundingClientRect();
-      const x = Math.floor((event.clientX - rect.left) / (canvas.width / canvas.width));
-      const y = Math.floor((event.clientY - rect.top) / (canvas.height / Math.floor((fireHeight / 100) * canvas.height)));
+            // Safety check to prevent accessing out-of-bounds
+            if (belowY >= firePixelsArray.length || belowX >= firePixelsArray[0].length) {
+              continue;
+            }
 
-      if (y >= 0 && y < firePixelsArray.length && x >= 0 && x < firePixelsArray[0].length) {
-        firePixelsArray[y][x] = 36; // Set maximum intensity at the touched point
+            const srcPixel = firePixelsArray[belowY][belowX];
+            const newIntensity = srcPixel - decay >= 0 ? srcPixel - decay : 0;
+            firePixelsArray[y - 1][x] = newIntensity;
+          }
+        }
       }
-    }
 
-    // Support both touch and mouse events
-    canvas.addEventListener('pointerdown', (e) => {
-      handleInteraction(e);
-    }, false);
+      // Render the fire onto the canvas
+      function renderFire() {
+        const width = canvas.width;
+        const height = Math.floor((fireHeight / 100) * canvas.height);
+        const imageData = ctx.createImageData(width, height);
+        const data = imageData.data;
 
-    canvas.addEventListener('pointermove', (e) => {
-      if (e.pressure > 0) { // Only handle when the pointer is pressed
+        for (let y = 0; y < height; y++) {
+          for (let x = 0; x < width; x++) {
+            const pixelIndex = y * width + x;
+            const intensity = firePixelsArray[y][x];
+            const color = fireColorsPalette[intensity] || {r:0, g:0, b:0};
+
+            const dataIndex = pixelIndex * 4;
+            data[dataIndex] = color.r;
+            data[dataIndex + 1] = color.g;
+            data[dataIndex + 2] = color.b;
+            data[dataIndex + 3] = 255; // Fully opaque
+          }
+        }
+
+        // Put the imageData on the canvas
+        ctx.putImageData(imageData, 0, 0);
+
+        // Scale the image to fit the canvas
+        // Create a temporary canvas to handle scaling
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.width = width;
+        tempCanvas.height = height;
+        const tempCtx = tempCanvas.getContext('2d');
+        tempCtx.putImageData(imageData, 0, 0);
+
+        // Clear the main canvas and draw the scaled image
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(tempCanvas, 0, 0, width, height, 0, 0, canvas.width, canvas.height);
+      }
+
+      // Animation loop to continuously update and render the fire
+      function animate() {
+        calculateFirePropagation();
+        renderFire();
+        requestAnimationFrame(animate);
+      }
+
+      animate();
+
+      // Handle user interactions (touch/mouse) to create interactive flames
+      function handleInteraction(event) {
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = Math.floor((fireHeight / 100) * canvas.height) / rect.height;
+
+        const x = Math.floor((event.clientX - rect.left) * scaleX);
+        const y = Math.floor((event.clientY - rect.top) * scaleY);
+
+        if (y >= 0 && y < firePixelsArray.length && x >= 0 && x < firePixelsArray[0].length) {
+          firePixelsArray[y][x] = 36; // Set maximum intensity at the interacted point
+        }
+      }
+
+      // Support both touch and mouse events
+      canvas.addEventListener('pointerdown', (e) => {
         handleInteraction(e);
-      }
-    }, false);
+      }, false);
 
-    // Prevent scrolling on touch devices when interacting with the canvas
-    canvas.addEventListener('touchstart', (e) => e.preventDefault(), { passive: false });
-    canvas.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
+      canvas.addEventListener('pointermove', (e) => {
+        // For touch devices, e.pressure might not be supported, so check e.buttons as well
+        if (e.pressure > 0 || e.buttons > 0) { // Only handle when the pointer is pressed
+          handleInteraction(e);
+        }
+      }, false);
+
+      // Prevent default touch behaviors to avoid scrolling when interacting with the canvas
+      canvas.addEventListener('touchstart', (e) => e.preventDefault(), { passive: false });
+      canvas.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
+
+      // Initialize the flame height display
+      flameValue.textContent = fireHeight;
+    })();
   </script>
 </body>
 </html>
