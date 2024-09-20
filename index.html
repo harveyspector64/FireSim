@@ -45,8 +45,8 @@
 </head>
 <body>
   <div id="ui">
-    <label for="flameControl" id="flameControlLabel">Flame Height: <span id="flameValue">50</span></label>
-    <input type="range" id="flameControl" min="10" max="100" value="50">
+    <label for="flameControl" id="flameControlLabel">Gas Control: <span id="flameValue">50</span></label>
+    <input type="range" id="flameControl" min="0" max="100" value="50">
   </div>
   <canvas id="fireCanvas"></canvas>
 
@@ -61,13 +61,13 @@
       ctx.imageSmoothingEnabled = false;
 
       // Fire parameters
-      let fireHeight = 50; // Initial flame height percentage
+      let gasControl = 50; // Initial gas control percentage (0-100)
       const flameControl = document.getElementById('flameControl');
       const flameValue = document.getElementById('flameValue');
 
       // Fire algorithm variables
-      const FIRE_WIDTH = 100; // Fixed width for firePixelsArray
-      const FIRE_HEIGHT_PIXELS = 100; // Fixed height for firePixelsArray
+      const FIRE_WIDTH = 200; // Increased width for better resolution
+      const FIRE_HEIGHT_PIXELS = 200; // Increased height for better resolution
       let firePixelsArray = [];
 
       // Color palette for fire (from black to white)
@@ -122,32 +122,30 @@
           firePixelsArray.push(row);
         }
 
-        // Set the bottom 'fireHeight' rows to maximum intensity
-        setFireHeight(fireHeight);
+        // Set the bottom row as the initial flame source based on gasControl
+        updateFlameSource();
       }
 
-      // Set the bottom 'fireHeight' rows to maximum intensity, reset others
-      function setFireHeight(heightPercentage) {
-        const activeRows = Math.floor((heightPercentage / 100) * FIRE_HEIGHT_PIXELS);
-        for (let y = 0; y < FIRE_HEIGHT_PIXELS; y++) {
-          if (y >= FIRE_HEIGHT_PIXELS - activeRows) {
-            for (let x = 0; x < FIRE_WIDTH; x++) {
-              firePixelsArray[y][x] = 36; // Max intensity for flames
-            }
-          } else {
-            for (let x = 0; x < FIRE_WIDTH; x++) {
-              firePixelsArray[y][x] = 0; // Reset intensity
-            }
-          }
+      // Update the flame source based on gasControl
+      function updateFlameSource() {
+        const activePixels = Math.floor((gasControl / 100) * FIRE_WIDTH);
+        // Clear the bottom row first
+        for (let x = 0; x < FIRE_WIDTH; x++) {
+          firePixelsArray[FIRE_HEIGHT_PIXELS - 1][x] = 0;
+        }
+        // Randomly set activePixels in the bottom row to maximum intensity
+        for (let i = 0; i < activePixels; i++) {
+          const x = Math.floor(Math.random() * FIRE_WIDTH);
+          firePixelsArray[FIRE_HEIGHT_PIXELS - 1][x] = 36; // Max intensity
         }
       }
 
-      // Update 'fireHeight' based on slider
+      // Update 'gasControl' based on slider
       flameControl.addEventListener('input', (e) => {
         const sliderValue = parseInt(e.target.value);
         flameValue.textContent = sliderValue;
-        fireHeight = sliderValue;
-        setFireHeight(fireHeight);
+        gasControl = sliderValue;
+        updateFlameSource();
       });
 
       // Calculate fire propagation using the classic fire algorithm
