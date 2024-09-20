@@ -40,6 +40,8 @@
       display: block;
       width: 100%;
       height: 100%;
+      image-rendering: pixelated; /* Maintain pixelated effect */
+      image-rendering: crisp-edges;
     }
   </style>
 </head>
@@ -48,7 +50,7 @@
     <label for="flameControl" id="flameControlLabel">Gas Control: <span id="flameValue">50</span></label>
     <input type="range" id="flameControl" min="0" max="100" value="50">
   </div>
-  <canvas id="fireCanvas"></canvas>
+  <canvas id="fireCanvas" width="200" height="200"></canvas>
 
   <script>
     // app.js
@@ -66,8 +68,8 @@
       const flameValue = document.getElementById('flameValue');
 
       // Fire algorithm variables
-      const FIRE_WIDTH = 200; // Increased width for better resolution
-      const FIRE_HEIGHT_PIXELS = 200; // Increased height for better resolution
+      const FIRE_WIDTH = canvas.width; // Fixed width for firePixelsArray
+      const FIRE_HEIGHT_PIXELS = canvas.height; // Fixed height for firePixelsArray
       let firePixelsArray = [];
 
       // Color palette for fire (from black to white)
@@ -122,21 +124,24 @@
           firePixelsArray.push(row);
         }
 
-        // Set the bottom row as the initial flame source based on gasControl
+        // Set the flame source based on initial gasControl
         updateFlameSource();
       }
 
       // Update the flame source based on gasControl
       function updateFlameSource() {
         const activePixels = Math.floor((gasControl / 100) * FIRE_WIDTH);
+        const spacing = Math.floor(FIRE_WIDTH / (activePixels || 1));
         // Clear the bottom row first
         for (let x = 0; x < FIRE_WIDTH; x++) {
           firePixelsArray[FIRE_HEIGHT_PIXELS - 1][x] = 0;
         }
-        // Randomly set activePixels in the bottom row to maximum intensity
+        // Evenly distribute active pixels to prevent gaps
         for (let i = 0; i < activePixels; i++) {
-          const x = Math.floor(Math.random() * FIRE_WIDTH);
-          firePixelsArray[FIRE_HEIGHT_PIXELS - 1][x] = 36; // Max intensity
+          const x = Math.floor(i * spacing + spacing / 2);
+          if (x < FIRE_WIDTH) {
+            firePixelsArray[FIRE_HEIGHT_PIXELS - 1][x] = 36; // Max intensity
+          }
         }
       }
 
@@ -150,7 +155,7 @@
 
       // Calculate fire propagation using the classic fire algorithm
       function calculateFirePropagation() {
-        for (let y = 1; y < FIRE_HEIGHT_PIXELS; y++) {
+        for (let y = 0; y < FIRE_HEIGHT_PIXELS - 1; y++) {
           for (let x = 0; x < FIRE_WIDTH; x++) {
             const decay = Math.floor(Math.random() * 3);
             let belowY = y + 1;
@@ -160,14 +165,9 @@
             if (belowX < 0) belowX = 0;
             if (belowX >= FIRE_WIDTH) belowX = FIRE_WIDTH -1;
 
-            // Safety check to prevent accessing out-of-bounds
-            if (belowY >= FIRE_HEIGHT_PIXELS || belowX >= FIRE_WIDTH) {
-              continue;
-            }
-
             const srcPixel = firePixelsArray[belowY][belowX];
             const newIntensity = srcPixel - decay >= 0 ? srcPixel - decay : 0;
-            firePixelsArray[y - 1][x] = newIntensity;
+            firePixelsArray[y][x] = newIntensity;
           }
         }
       }
@@ -193,23 +193,8 @@
           }
         }
 
-        // Create a temporary canvas to handle scaling
-        const tempCanvas = document.createElement('canvas');
-        tempCanvas.width = width;
-        tempCanvas.height = height;
-        const tempCtx = tempCanvas.getContext('2d');
-
-        // Disable image smoothing on the temporary canvas
-        tempCtx.imageSmoothingEnabled = false;
-
-        tempCtx.putImageData(imageData, 0, 0);
-
-        // Clear the main canvas and disable image smoothing
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.imageSmoothingEnabled = false;
-
-        // Draw the scaled image onto the main canvas
-        ctx.drawImage(tempCanvas, 0, 0, width, height, 0, 0, canvas.width, canvas.height);
+        // Draw the imageData directly onto the main canvas
+        ctx.putImageData(imageData, 0, 0);
       }
 
       // Animation loop to continuously update and render the fire
